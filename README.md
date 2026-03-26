@@ -4,7 +4,7 @@ A Go HTTP API that calculates the optimal pack combination to fulfil a customer 
 
 ## Rules
 
-1. Only whole packs can be sent — packs cannot be broken open.
+1. Only whole packs can be sent. Packs cannot be broken open.
 2. Send the least number of **items** to fulfil the order (minimise overshoot).
 3. Within rule 2, send as few **packs** as possible.
 
