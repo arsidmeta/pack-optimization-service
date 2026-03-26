@@ -9,6 +9,9 @@ pack-optimization-service
 # Test cache
 *.test
 
+# Runtime state
+packs.json
+
 # Environment files
 .env
 .env.*
