@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pack Optimization Service</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #555;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        input[type="number"]:focus {
+            border-color: #e5a100;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #e5a100;
+            color: #fff;
+            padding: 10px 28px;
+        }
+
+        .btn-primary:hover { background: #cc8f00; }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover { background: #e0e0e0; }
+
+        .btn-danger {
+            background: none;
+            color: #d32f2f;
+            padding: 4px 10px;
+            font-size: 13px;
+        }
+
+        .btn-danger:hover { background: #fce4e4; }
+
+        .pack-sizes-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .pack-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8f0d8;
+            color: #8a6d00;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .result {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .result.show { display: block; }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .result-header strong {
+            color: #1a1a1a;
+            font-size: 16px;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .result-table th {
+            text-align: left;
+            padding: 8px 12px;
+            border-bottom: 2px solid #e5e7eb;
+            font-size: 13px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 15px;
+        }
+
+        .result-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .total-row {
+            font-weight: 600;
+            background: #f0f0f0;
+        }
+
+        .error {
+            color: #d32f2f;
+            background: #fce4e4;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pack Optimization Service</h1>
+        <p class="subtitle">Calculate the optimal pack combination for customer orders</p>
+
+        <div class="card">
+            <h2>Pack Sizes</h2>
+            <div class="pack-sizes-list" id="packSizesList"></div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="newPackSize">Add new pack size</label>
+                    <input type="number" id="newPackSize" min="1" placeholder="e.g. 300">
+                </div>
+                <button class="btn-secondary" onclick="addPackSize()">Add</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Calculate Order</h2>
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="orderItems">Number of items ordered</label>
+                    <input type="number" id="orderItems" min="1" placeholder="e.g. 12001">
+                </div>
+                <button class="btn-primary" onclick="calculate()">Calculate</button>
+            </div>
+            <div class="error" id="errorMsg"></div>
+            <div class="result" id="result">
+                <div class="result-header">
+                    <div>Ordered: <strong id="orderedItems"></strong> items</div>
+                    <div>Shipping: <strong id="totalItems"></strong> items</div>
+                </div>
+                <table class="result-table">
+                    <thead>
+                        <tr>
+                            <th>Pack Size</th>
+                            <th>Quantity</th>
+                            <th>Items</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = '';
+
+        async function loadPackSizes() {
+            const res = await fetch(`${API}/api/packs`);
+            const sizes = await res.json();
+            const list = document.getElementById('packSizesList');
+            list.innerHTML = '';
+            sizes.forEach(p => {
+                const tag = document.createElement('span');
+                tag.className = 'pack-tag';
+                tag.innerHTML = `${p.size.toLocaleString()} items <button class="btn-danger" onclick="removePackSize(${p.size})">&times;</button>`;
+                list.appendChild(tag);
+            });
+        }
+
+        async function addPackSize() {
+            const input = document.getElementById('newPackSize');
+            const size = parseInt(input.value);
+            if (!size || size <= 0) return;
+
+            const res = await fetch(`${API}/api/packs`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({size})
+            });
+
+            if (res.ok) {
+                input.value = '';
+                loadPackSizes();
+            } else {
+                const err = await res.json();
+                showError(err.error);
+            }
+        }
+
+        async function removePackSize(size) {
+            await fetch(`${API}/api/packs?size=${size}`, {method: 'DELETE'});
+            loadPackSizes();
+        }
+
+        async function calculate() {
+            const items = parseInt(document.getElementById('orderItems').value);
+            hideError();
+            document.getElementById('result').classList.remove('show');
+
+            if (!items || items <= 0) {
+                showError('Please enter a valid number of items');
+                return;
+            }
+
+            const res = await fetch(`${API}/api/calculate`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({items})
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                showError(data.error);
+                return;
+            }
+
+            document.getElementById('orderedItems').textContent = data.ordered_items.toLocaleString();
+            document.getElementById('totalItems').textContent = data.total_items.toLocaleString();
+
+            const body = document.getElementById('resultBody');
+            body.innerHTML = '';
+
+            let totalPacks = 0;
+            data.packs.forEach(p => {
+                totalPacks += p.quantity;
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${p.size.toLocaleString()}</td><td>${p.quantity}</td><td>${(p.size * p.quantity).toLocaleString()}</td>`;
+                body.appendChild(row);
+            });
+
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'total-row';
+            totalRow.innerHTML = `<td>Total</td><td>${totalPacks}</td><td>${data.total_items.toLocaleString()}</td>`;
+            body.appendChild(totalRow);
+
+            document.getElementById('result').classList.add('show');
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('errorMsg').classList.remove('show');
+        }
+
+        document.getElementById('orderItems').addEventListener('keydown', e => {
+            if (e.key === 'Enter') calculate();
+        });
+
+        document.getElementById('newPackSize').addEventListener('keydown', e => {
+            if (e.key === 'Enter') addPackSize();
+        });
+
+        loadPackSizes();
+    </script>
+</body>
+</html>
