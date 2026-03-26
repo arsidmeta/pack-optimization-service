@@ -130,3 +130,35 @@ func TestCalculatePacksMinimizesPacks(t *testing.T) {
 		t.Errorf("expected 1 pack, got %d (packs: %v)", totalPacks, result)
 	}
 }
+
+// TestEdgeCase verifies the algorithm against the edge case provided in the assessment:
+// pack sizes [23, 31, 53], order 500,000 → expected {23:2, 31:7, 53:9429}.
+//
+// Verification: 53*9429 + 31*7 + 23*2 = 499,737 + 217 + 46 = 500,000 items, 9,438 packs.
+// This is provably the minimum number of packs: the linear equation 30a+8b=282,949
+// has no integer solution for 9,437 packs (right-hand side is odd, GCD(30,8)=2).
+func TestEdgeCase(t *testing.T) {
+	result := CalculatePacks(500_000, []int{23, 31, 53})
+
+	expected := map[int]int{23: 2, 31: 7, 53: 9429}
+
+	totalItems := 0
+	for size, count := range result {
+		totalItems += size * count
+	}
+
+	if totalItems != 500_000 {
+		t.Errorf("expected exactly 500,000 items shipped, got %d (packs: %v)", totalItems, result)
+	}
+
+	if len(result) != len(expected) {
+		t.Errorf("got %v, want %v", result, expected)
+		return
+	}
+	for size, count := range expected {
+		if result[size] != count {
+			t.Errorf("got %v, want %v", result, expected)
+			return
+		}
+	}
+}
